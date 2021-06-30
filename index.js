@@ -55,7 +55,7 @@ function getExchangeRate() {
   });
 }
 
-const threshold = 30.5;
+const threshold = process.env.THRESHOLD;
 
 const transporter = nodemailer.createTransport({
   service: "gmail", // hostname
@@ -90,17 +90,5 @@ cron.schedule("0 12 * * *", async () => {
     console.log(await sendMail(mailOptions));
   }
 });
-
-testMail();
-
-async function testMail() {
-  const exchange = await getExchangeRate();
-  const mailOptions = {
-    to: "pholawat.tangsatit@gmail.com",
-    subject: `Exchange Rate E-mail Test`,
-    html: `${exchange} THB = 1 USD, Threshold = ${threshold}`,
-  };
-  console.log(`Test: ${await sendMail(mailOptions)}`);
-}
 
 console.log(new Date().toLocaleString());
