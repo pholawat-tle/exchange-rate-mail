@@ -1,59 +1,8 @@
 require("dotenv").config();
-const axios = require("axios");
+
 const cron = require("node-cron");
 const nodemailer = require("nodemailer");
-
-function getTodaysDate() {
-  const d = new Date();
-  const date = isOneDigit(d.getDate()) ? `0${d.getDate()}` : d.getDate();
-  const month = isOneDigit(d.getMonth())
-    ? `0${d.getMonth() + 1}`
-    : d.getMonth() + 1;
-  const year = d.getFullYear();
-  return `${year}-${month}-${date}`;
-}
-
-function getYesterdaysDate() {
-  const td = new Date();
-  const d = new Date();
-  d.setDate(td.getDate() - 1);
-  const date = isOneDigit(d.getDate()) ? `0${d.getDate()}` : d.getDate();
-  const month = isOneDigit(d.getMonth())
-    ? `0${d.getMonth() + 1}`
-    : d.getMonth() + 1;
-  const year = d.getFullYear();
-  return `${year}-${month}-${date}`;
-}
-
-function isOneDigit(num) {
-  return Math.floor(num / 10) == 0;
-}
-
-function getExchangeRate() {
-  return new Promise((resolve, reject) => {
-    axios
-      .get(
-        "https://apigw1.bot.or.th/bot/public/Stat-ExchangeRate/v2/DAILY_AVG_EXG_RATE/",
-        {
-          headers: {
-            "x-ibm-client-id": process.env.SECRET,
-          },
-          params: {
-            start_period: getYesterdaysDate(),
-            end_period: getTodaysDate(),
-            currency: "USD",
-          },
-        }
-      )
-      .then((res) => res.data.result.data)
-      .then((data) => data.data_detail)
-      .then((data) => resolve(data[0].mid_rate))
-      .catch(() => {
-        console.log(`Data Doesn't Exist!`);
-        resolve(null);
-      });
-  });
-}
+const { getExchangeRate } = require("./utils");
 
 const threshold = process.env.THRESHOLD;
 
@@ -78,10 +27,10 @@ async function sendMail(mailOptions) {
 
 cron.schedule("0 12 * * *", async () => {
   const exchange = await getExchangeRate();
-  console.log(
-    `${new Date().toLocaleString()}: Exchange Rate Today is ${exchange} THB to 1 USD`
-  );
   if (exchange <= threshold && exchange) {
+    console.log(
+      `${new Date().toLocaleString()}: Exchange Rate Today is ${exchange} THB to 1 USD`
+    );
     const mailOptions = {
       to: process.env.RECEIVER,
       subject: `Exchange Rate Notification`,
@@ -92,3 +41,14 @@ cron.schedule("0 12 * * *", async () => {
 });
 
 console.log(new Date().toLocaleString());
+
+// async function testExchangeRate() {
+//   const exchange = await getExchangeRate();
+//   if (exchange) {
+//     console.log(
+//       `${new Date().toLocaleString()}: Exchange Rate Today is ${exchange} THB to 1 USD`
+//     );
+//   }
+// }
+
+// testMail();
