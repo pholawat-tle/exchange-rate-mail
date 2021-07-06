@@ -40,15 +40,21 @@ cron.schedule("0 12 * * *", async () => {
   }
 });
 
-console.log(new Date().toLocaleString());
+async function testExchangeRate() {
+  const exchange = await getExchangeRate();
+  if (exchange) {
+    console.log(
+      new Date().toLocaleString() +
+        ": Application has been started. Today's Exchange Rate is " +
+        exchange +
+        " THB to 1 USD"
+    );
+  } else {
+    console.log(
+      new Date().toLocaleString() +
+        ": Application has been started. Today's Exchange Rate is not available"
+    );
+  }
+}
 
-// async function testExchangeRate() {
-//   const exchange = await getExchangeRate();
-//   if (exchange) {
-//     console.log(
-//       `${new Date().toLocaleString()}: Exchange Rate Today is ${exchange} THB to 1 USD`
-//     );
-//   }
-// }
-
-// testMail();
+testExchangeRate();
